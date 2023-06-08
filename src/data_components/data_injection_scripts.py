@@ -1,5 +1,7 @@
 from src.logger import logging
 from src.exception import CustomException
+from src.data_components.model_evaluation_scripts import ModelTrainer
+from src.data_components.data_preprocessing_scripts import Data_processing
 
 import pandas as pd
 import numpy as np
@@ -39,5 +41,12 @@ class Data_injection:
             logging.exception("Data Injection Exception: {}".format(e))
             raise CustomException(e, sys)
 
-data_inj_obj = Data_injection()
-data_inj_obj.load_data()
+if __name__=="__main__":
+    obj=Data_injection()
+    train_data,test_data=obj.load_data()
+
+    data_transformation=Data_processing()
+    train_arr,test_arr,_=data_transformation.data_preprocessing(train_data,test_data)
+
+    modeltrainer=ModelTrainer()
+    print(modeltrainer.initiate_model_trainer(train_arr,test_arr))
