@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+plotly
+textblob
+warnings
+category_encoders
