@@ -82,6 +82,10 @@ class Data_processing:
 
             input_feature_train_arr=preprocessing_obj.fit_transform(input_feature_train_df)
             input_feature_test_arr=preprocessing_obj.transform(input_feature_test_df)
+            
+            label_encoder = LabelEncoder()
+            target_feature_train_df['success'] = label_encoder.fit_transform(target_feature_train_df['success'])
+            target_feature_test_df['success'] = label_encoder.fit_transform(target_feature_test_df['success'])
 
             train_arr = np.c_[input_feature_train_arr, np.array(target_feature_train_df)]
             test_arr = np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
@@ -89,10 +93,8 @@ class Data_processing:
             logging.info(f"Saved preprocessing object.")
 
             save_object(
-
                 file_path=self.preprocessing_path,
                 obj=preprocessing_obj
-
             )
 
             return (
