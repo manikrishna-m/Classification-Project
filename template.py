@@ -6,8 +6,8 @@ logging.basicConfig(level=logging.INFO, format = '[%(asctime)s - %(message)s]')
 
 def create_project_template():
     list_files = [
-        "data/input",
-        "data/processed",
+        "data/input/input_data.csv",
+        "data/processed/processed_data.csv",
         "notebooks/EDA.ipynb",
         "src/data_components/__init__.py",
         "src/data_components/data_injection_scripts.py",
