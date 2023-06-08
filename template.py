@@ -31,10 +31,7 @@ def create_project_template():
         if directory:
             os.makedirs(directory, exist_ok=True)
         with open(file_path, "w") as f:
-            if filename.endswith(".py"):
-                f.write("# This is an empty Python file.")
-            elif filename.endswith(".ipynb"):
-                f.write("# This is an empty Jupyter Notebook.")
+            pass
                 
     logging.info(f"Project template created successfully")
                 
