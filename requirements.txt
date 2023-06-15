@@ -5,5 +5,4 @@ matplotlib
 seaborn
 plotly
 textblob
-warnings
 category_encoders

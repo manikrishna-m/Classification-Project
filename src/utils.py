@@ -8,7 +8,13 @@ import pickle
 from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
+from pathlib import Path
+original_path = sys.path.copy()
+sys.path.append(str(Path(__file__).parent.parent))
+
+
 from src.exception import CustomException
+sys.path = original_path
 
 def save_object(file_path, obj):
     try:

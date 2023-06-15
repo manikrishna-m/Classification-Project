@@ -14,11 +14,15 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
+from pathlib import Path
+original_path = sys.path.copy()
+sys.path.append(str(Path(__file__).parent.parent))
+
 from src.exception import CustomException
 from src.logger import logging
 
 from src.utils import save_object, evaluate_models
-
+sys.path = original_path
 
 @dataclass
 class ModelTrainerConfig:

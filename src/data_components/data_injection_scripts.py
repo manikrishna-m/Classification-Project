@@ -1,14 +1,22 @@
 from src.logger import logging
 from src.exception import CustomException
-from src.data_components.model_evaluation_scripts import ModelTrainer
-from src.data_components.data_preprocessing_scripts import Data_processing
+
+import os
+import sys
+from pathlib import Path
+original_path = sys.path.copy()
+sys.path.append(str(Path(__file__).parent.parent))
+
+from data_components.model_evaluation_scripts import ModelTrainer
+from data_components.data_preprocessing_scripts import Data_processing
 
 import pandas as pd
 import numpy as np
-import sys
 
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
+
+sys.path = original_path
 
 @dataclass
 class Data_injection_paths:
@@ -43,10 +51,10 @@ class Data_injection:
 
 if __name__=="__main__":
     obj=Data_injection()
-    train_data,test_data=obj.load_data()
+    obj.load_data()
 
     data_transformation=Data_processing()
-    train_arr,test_arr,_=data_transformation.data_preprocessing(train_data,test_data)
+    train_arr,test_arr,_ = data_transformation.data_preprocessing()
 
     modeltrainer=ModelTrainer()
     print(modeltrainer.initiate_model_trainer(train_arr,test_arr))
