@@ -26,12 +26,13 @@ sys.path = original_path
 
 @dataclass
 class ModelTrainerConfig:
-    trained_model_file_path: str = os.path.join("artifacts", "model.pkl")
+    trained_model_file_path: str = "data/processed/model.pkl"
 
 
 class ModelTrainer:
     def __init__(self):
         self.model_trainer_config = ModelTrainerConfig()
+        self.model_path = self.model_trainer_config.trained_model_file_path
 
     def initiate_model_trainer(self, train_input_array, train_target_array, test_input_array, test_target_array):
         try:
@@ -107,9 +108,9 @@ class ModelTrainer:
                 raise CustomException("No best model found")
             logging.info(f"Best found model on both training and testing dataset")
 
-            dir_path = os.path.dirname(self.model_trainer_config.trained_model_file_path)
+            dir_path = os.path.dirname(self.model_path)
             os.makedirs(dir_path, exist_ok=True)
-            with open(self.model_trainer_config.trained_model_file_path, "wb") as file_obj:
+            with open(self.model_path, "wb") as file_obj:
                 pickle.dump(best_model, file_obj)
 
             predicted = best_model.predict(X_test)
