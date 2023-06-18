@@ -20,9 +20,10 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from src.exception import CustomException
 from src.logger import logging
-
-from src.utils import save_object, evaluate_models
 sys.path = original_path
+
+from src.utils import save_object
+from src.utils import evaluate_models
 
 @dataclass
 class ModelTrainerConfig:
@@ -33,14 +34,11 @@ class ModelTrainer:
     def __init__(self):
         self.model_trainer_config = ModelTrainerConfig()
 
-    def initiate_model_trainer(self, train_array, test_array):
+    def initiate_model_trainer(self, train_input_array, train_target_array, test_input_array, test_target_array):
         try:
             logging.info("Split training and test input data")
             X_train, y_train, X_test, y_test = (
-                train_array[:, :-1],
-                train_array[:, -1],
-                test_array[:, :-1],
-                test_array[:, -1],
+                train_input_array, train_target_array, test_input_array, test_target_array
             )
             models = {
                 "Random Forest": RandomForestClassifier(),
