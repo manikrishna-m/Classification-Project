@@ -1,6 +1,10 @@
 import os
 import sys
+import pickle
 from dataclasses import dataclass
+from pathlib import Path
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 from catboost import CatBoostClassifier
 from sklearn.ensemble import (
@@ -9,25 +13,20 @@ from sklearn.ensemble import (
     RandomForestClassifier,
 )
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
-from pathlib import Path
 original_path = sys.path.copy()
 sys.path.append(str(Path(__file__).parent.parent))
-
 from src.exception import CustomException
 from src.logger import logging
 sys.path = original_path
 
-from src.utils import save_object
-from src.utils import evaluate_models
 
 @dataclass
 class ModelTrainerConfig:
-    trained_model_file_path = os.path.join("artifacts", "model.pkl")
+    trained_model_file_path: str = os.path.join("artifacts", "model.pkl")
 
 
 class ModelTrainer:
@@ -68,7 +67,7 @@ class ModelTrainer:
                     "n_estimators": [8, 16, 32, 64, 128, 256],
                 },
                 "Logistic Regression": {
-                    "penalty": ["l1", "l2"],
+                    "penalty": ["l2"],
                     "C": [0.001, 0.01, 0.1, 1, 10, 100],
                 },
                 "XGBClassifier": {
@@ -108,14 +107,40 @@ class ModelTrainer:
                 raise CustomException("No best model found")
             logging.info(f"Best found model on both training and testing dataset")
 
-            save_object(
-                file_path=self.model_trainer_config.trained_model_file_path, obj=best_model
-            )
+            dir_path = os.path.dirname(self.model_trainer_config.trained_model_file_path)
+            os.makedirs(dir_path, exist_ok=True)
+            with open(self.model_trainer_config.trained_model_file_path, "wb") as file_obj:
+                pickle.dump(best_model, file_obj)
 
             predicted = best_model.predict(X_test)
-
             accuracy = accuracy_score(y_test, predicted)
             return accuracy
 
         except Exception as e:
-            raise CustomException(e, sys)
+            raise CustomException(str(e), sys)
+
+
+
+def evaluate_models(X_train, y_train, X_test, y_test, models, param):
+    try:
+        report = {}
+
+        for model_name, model in models.items():
+            params = param[model_name]
+
+            gs = GridSearchCV(model, params, cv=3)
+            gs.fit(X_train, y_train)
+
+            model.set_params(**gs.best_params_)
+            model.fit(X_train, y_train)
+            y_test_pred = model.predict(X_test)
+
+            test_model_score = accuracy_score(y_test, y_test_pred)
+
+            report[model_name] = test_model_score
+
+        return report
+
+    except Exception as e:
+        raise CustomException(str(e), sys)
+

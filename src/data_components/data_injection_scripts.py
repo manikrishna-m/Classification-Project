@@ -51,5 +51,6 @@ if __name__=="__main__":
     data_transformation=Data_processing()
     train_input_arr, train_target_arr, test_input_arr, test_target_arr, _ = data_transformation.data_preprocessing()
 
-    # modeltrainer=ModelTrainer()
-    # print(modeltrainer.initiate_model_trainer(train_input_arr, train_target_arr, test_input_arr, test_target_arr))
+    modeltrainer=ModelTrainer()
+    print(modeltrainer.initiate_model_trainer(train_input_arr, train_target_arr, test_input_arr, test_target_arr))
+

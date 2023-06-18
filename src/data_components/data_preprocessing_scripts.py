@@ -79,7 +79,7 @@ class Data_processing:
             
             df['priceUSD'] = np.where(df['priceUSD'] == 0, df['priceUSD'].median(), df['priceUSD'])
 
-            df['duration'] = np.abs((pd.to_datetime(df['endDate']) - pd.to_datetime(df['startDate'])).dt.days)
+            df['duration'] = np.abs((pd.to_datetime(df['endDate'], format='%d-%m-%Y') - pd.to_datetime(df['startDate'], format='%d-%m-%Y')).dt.days)
             df = df.drop(['startDate','endDate'], axis=1)
 
             df['countryRegion'] = df['countryRegion'].str.lower().replace(['curacao', 'curaçao'], 'curacao')
@@ -110,29 +110,27 @@ class Data_processing:
 
             target_column = "success"
 
+            label_encoder = LabelEncoder()
+            train_df[target_column] = label_encoder.fit_transform(train_df[target_column])
+            test_df[target_column] = label_encoder.transform(test_df[target_column])
+
             input_feature_train_df = train_df.drop(columns=[target_column], axis=1)
             target_feature_train_df = train_df[target_column]
 
             input_feature_test_df = test_df.drop(columns=[target_column], axis=1)
             target_feature_test_df = test_df[target_column]
 
-            label_encoder = LabelEncoder()
-            train_df[target_column] = label_encoder.fit_transform(train_df[target_column])
-            test_df[target_column] = label_encoder.transform(test_df[target_column])
             
             logging.info("Applying preprocessing object on training dataframe and testing dataframe.")
 
             input_feature_train_arr = preprocessing_obj.fit_transform(input_feature_train_df)
             input_feature_test_arr = preprocessing_obj.transform(input_feature_test_df)
             
-            try:
-                dir_path = os.path.dirname(self.preprocessing_path)
-                os.makedirs(dir_path, exist_ok=True)
-                with open(self.preprocessing_path, "wb") as file_obj:
-                    pickle.dump(preprocessing_obj, file_obj)
-            except Exception as e:
-                raise CustomException(e, sys)
-
+            dir_path = os.path.dirname(self.preprocessing_path)
+            os.makedirs(dir_path, exist_ok=True)
+            with open(self.preprocessing_path, "wb") as file_obj:
+                pickle.dump(preprocessing_obj, file_obj)
+        
             logging.info("Saved preprocessing object.")
 
             return input_feature_train_arr, target_feature_train_df, input_feature_test_arr, target_feature_test_df, self.preprocessing_path
