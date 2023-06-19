@@ -6,12 +6,14 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from textblob import TextBlob
 from dataclasses import dataclass
+from pycountry_convert import country_alpha2_to_continent_code
 
 import os
 import sys
 import pandas as pd
 import numpy as np
 import pickle
+import pycountry
 
 from pathlib import Path
 original_path = sys.path.copy()
@@ -20,6 +22,14 @@ from src.logger import logging
 from src.exception import CustomException
 # from src.utils import save_object
 sys.path = original_path
+
+def get_continent(country_code):
+    try:
+        country = pycountry.countries.get(alpha_2=country_code)
+        if country:
+            return country.continent.alpha_2
+    except Exception as e:
+            raise CustomException(e, sys.exc_info())
 
 @dataclass 
 class Data_preprocessing_paths:
@@ -41,95 +51,50 @@ class Data_processing:
             logging.info("Data Preprocessing started")
             train_df = pd.read_csv(self.train_path)
 
-            # Exclude target column
             target_column = "success"
             input_columns = train_df.columns.drop(target_column)
 
+            duration_pipeline = Pipeline([
+                ('duration', FunctionTransformer(lambda X: np.abs((pd.to_datetime(X['endDate'], format='%d-%m-%Y') - pd.to_datetime(X['startDate'], format='%d-%m-%Y')).dt.days), validate=False))
+                ])
+
+            platform_pipeline = Pipeline([
+                ('platform_Ethereum', FunctionTransformer(lambda X: X.isin(['ETH', 'Ethererum', 'Ethereum', 'Ethereum, Waves', 'Etherum']).astype(int), validate=False))
+                ])
+
+            brand_slogan_pipeline = Pipeline([
+                ('brandSlogan_score', FunctionTransformer(lambda X: X.apply(lambda x: TextBlob(str(x)).sentiment.polarity), validate=False))
+                ])
+
+            # country_region_pipeline = Pipeline([
+            #     ('replace', FunctionTransformer(lambda X: X.applymap(get_continent))),
+            #     ('one_hot_encoding', ColumnTransformer([
+            #         ('one_hot', OneHotEncoder(sparse=False, handle_unknown='ignore'), ['countryRegion'])
+            #     ]))
+            # ])
+
+
             numerical_vars = train_df[input_columns].select_dtypes(include=['float64', 'int64']).columns.tolist()
-            categorical_vars = train_df[input_columns].select_dtypes(include=['object']).columns.tolist()
 
             numerical_pipeline = Pipeline([
                 ('imputer', SimpleImputer(strategy='median')),
                 ('scaler', StandardScaler())
             ])
-
-            categorical_pipeline = Pipeline([
-                ('imputer', SimpleImputer(strategy='most_frequent')),
-                ('encoder', OneHotEncoder(handle_unknown='ignore'))
-            ])
-
-            preprocessor = ColumnTransformer([
+        
+            preprocessor_transformers = [
                 ('numerical', numerical_pipeline, numerical_vars),
-                ('categorical', categorical_pipeline, categorical_vars)
-            ])
+                ('duration', duration_pipeline, ['startDate', 'endDate']),
+                # ('country_region', country_region_pipeline, ['countryRegion']),
+                ('platform', platform_pipeline, ['platform']),
+                ('brand_slogan', brand_slogan_pipeline, ['brandSlogan'])
+            ]
+
+            preprocessor = ColumnTransformer(preprocessor_transformers, remainder='drop')
 
             return preprocessor
 
         except Exception as e:
             raise CustomException(e, sys.exc_info())
-
-    # def data_transformation(self):
-    #     try:
-    #         logging.info("Data Preprocessing started")
-    #         train_df = pd.read_csv(self.train_path)
-
-    #         # Exclude target column
-    #         target_column = "success"
-    #         input_columns = train_df.columns.drop(target_column)
-
-    #         duration_pipeline = Pipeline([
-    #             ('duration', FunctionTransformer(lambda X: np.abs((pd.to_datetime(X['endDate'], format='%d-%m-%Y') - pd.to_datetime(X['startDate'], format='%d-%m-%Y')).dt.days), validate=False))
-    #         ])
-
-    #         country_pipeline = Pipeline([
-    #             ('lowercase', FunctionTransformer(lambda X: X.str.lower())),
-    #             ('replace', FunctionTransformer(lambda X: X.replace(['curacao', 'curaçao'], 'curacao')))
-    #         ])
-
-    #         country_region_pipeline = Pipeline([
-    #             ('dummies', FunctionTransformer(lambda X: pd.get_dummies(X['countryRegion']), validate=False)),
-    #             ('fillna', SimpleImputer(strategy='constant', fill_value=0))
-    #         ])
-
-    #         platform_pipeline = Pipeline([
-    #             ('platform_Ethereum', FunctionTransformer(lambda X: X.isin(['ETH', 'Ethererum', 'Ethereum', 'Ethereum, Waves', 'Etherum']).astype(int), validate=False))
-    #         ])
-
-    #         brand_slogan_pipeline = Pipeline([
-    #             ('brandSlogan_score', FunctionTransformer(lambda X: X.apply(lambda x: TextBlob(str(x)).sentiment.polarity), validate=False))
-    #         ])
-
-    #         numerical_vars = train_df[input_columns].select_dtypes(include=['float64', 'int64']).columns.tolist()
-    #         categorical_vars = train_df[input_columns].select_dtypes(include=['object']).columns.tolist()
-
-    #         numerical_pipeline = Pipeline([
-    #             ('imputer', SimpleImputer(strategy='median')),
-    #             ('scaler', StandardScaler())
-    #         ])
-
-    #         categorical_pipeline = Pipeline([
-    #             ('imputer', SimpleImputer(strategy='most_frequent')),
-    #         ])
-
-    #         preprocessor_transformers = [
-    #             ('numerical', numerical_pipeline, numerical_vars),
-    #             ('categorical', categorical_pipeline, categorical_vars),
-    #             ('duration', duration_pipeline, ['startDate', 'endDate']),
-    #             ('country', country_pipeline, ['countryRegion']),
-    #             ('country_region', country_region_pipeline, ['countryRegion']),
-    #             ('platform', platform_pipeline, ['platform']),
-    #             ('brand_slogan', brand_slogan_pipeline, ['brandSlogan'])
-    #         ]
-
-    #         preprocessor = ColumnTransformer(preprocessor_transformers, remainder='drop')
-
-    #         return preprocessor
-
-    #     except Exception as e:
-    #         raise CustomException(e, sys.exc_info())
-
-
-    
     
     def data_preprocessing(self):
         try:
@@ -137,30 +102,8 @@ class Data_processing:
 
             logging.info("Reading data is completed")
 
-            logging.info("Data Cleaning is started")
-            
-            df['priceUSD'] = np.where(df['priceUSD'] == 0, df['priceUSD'].median(), df['priceUSD'])
-
-            df['duration'] = np.abs((pd.to_datetime(df['endDate'], format='%d-%m-%Y') - pd.to_datetime(df['startDate'], format='%d-%m-%Y')).dt.days)
-            df = df.drop(['startDate','endDate'], axis=1)
-
-            df['countryRegion'] = df['countryRegion'].str.lower().replace(['curacao', 'curaçao'], 'curacao')
-            top_10_countries = df['countryRegion'].value_counts().head(10).index.tolist()
-            filtered_df = df[df['countryRegion'].isin(top_10_countries)]
-            df = pd.concat([df, pd.get_dummies(filtered_df['countryRegion'])], axis=1)
-            countries_to_fill = ['cayman islands', 'estonia','germany', 'malta', 'netherlands', 'russia', 'singapore', 'switzerland','uk', 'usa',]
-            df[countries_to_fill] = df[countries_to_fill].fillna(0)
-            df = df.drop(['countryRegion'], axis=1)
-
-            df['platform_Ethereum'] = np.where(df['platform'].isin(['ETH', 'Ethererum', 'Ethereum', 'Ethereum, Waves', 'Etherum']), 1, 0)
-            df = df.drop(['platform'], axis=1)
-
-            df['brandSlogan_score'] = df['brandSlogan'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
-            df = df.drop(['brandSlogan'], axis=1)
-
-            logging.info("Data Cleaning is completed")
-            
             train_df, test_df = train_test_split(df, test_size=0.2, random_state= 42)
+
             train_df.to_csv(self.train_path, index=False)
             test_df.to_csv(self.test_path, index=False)
             
@@ -169,6 +112,8 @@ class Data_processing:
             logging.info("Obtaining preprocessing object")
 
             preprocessing_obj = self.data_transformation()
+
+            logging.info("Applying label encoder on training dataframe and testing dataframe for target column.")
 
             target_column = "success"
 
@@ -182,7 +127,6 @@ class Data_processing:
             input_feature_test_df = test_df.drop(columns=[target_column], axis=1)
             target_feature_test_df = test_df[target_column]
 
-            
             logging.info("Applying preprocessing object on training dataframe and testing dataframe.")
 
             input_feature_train_arr = preprocessing_obj.fit_transform(input_feature_train_df)

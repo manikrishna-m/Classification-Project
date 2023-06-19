@@ -27,8 +27,9 @@ def predict_results():
             request.form.get('minInvestment'),
             request.form.get('distributedPercentage'),
         )
+        pred_df = data.data_dict()
         prediction = Predict_pipeline()
-        prediction_result = prediction.predict(data)
+        prediction_result = prediction.predict(pred_df)
 
         return render_template('home.html', result = prediction_result)
 

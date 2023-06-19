@@ -13,8 +13,8 @@ sys.path = original_path
 
 class Predict_pipeline:
     def __init__(self):
-        self.processor_path = 'data/processed/processor.pkl'
-        self.model_path = 'data/processed/model.pkl'
+        self.processor_path = 'data/processed/preprocessing.pkl'
+        self.model_path = 'artifacts/model.pkl'
 
     def predict(self,data):
         try:
@@ -24,9 +24,12 @@ class Predict_pipeline:
             with open(self.model_path, "rb") as file_obj:
                 model = pickle.load(file_obj)
 
-            return model.predict(processor.tranform(data))
+            print(data)
+            print(processor.transform(data))
+            return model.predict(processor.transform(data))
+        
         except Exception as e:
-            raise CustomException(str(e),sys)
+            raise CustomException(e, sys)
 
 
 class CustomData:
@@ -66,7 +69,7 @@ class CustomData:
                 'distributedPercentage': self.distributedPercentage
             }
 
-            return pd.DataFrame(predict_df)
+            return pd.DataFrame.from_dict(predict_df, orient='index')
         
         except Exception as e:
             raise CustomException(str(e),sys)
