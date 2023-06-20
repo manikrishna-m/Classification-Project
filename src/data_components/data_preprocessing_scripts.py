@@ -23,13 +23,20 @@ from src.exception import CustomException
 # from src.utils import save_object
 sys.path = original_path
 
-def get_continent(country_code):
-    try:
-        country = pycountry.countries.get(alpha_2=country_code)
-        if country:
-            return country.continent.alpha_2
-    except Exception as e:
-            raise CustomException(e, sys.exc_info())
+# def get_continent(country_code):
+#     try:
+#         country = pycountry.countries.get(alpha_2=country_code)
+#         if country:
+#             return country.continent.alpha_2
+#     except Exception as e:
+#             raise CustomException(e, sys.exc_info())
+
+def get_duration(X):
+    return np.abs((pd.to_datetime(X['endDate'], format='%d-%m-%Y') - pd.to_datetime(X['startDate'], format='%d-%m-%Y')).dt.days).values.reshape(-1, 1)
+
+def get_platform(X):
+    return X.isin(['ETH', 'Ethererum', 'Ethereum', 'Ethereum, Waves', 'Etherum']).astype(int)
+
 
 @dataclass 
 class Data_preprocessing_paths:
@@ -55,16 +62,17 @@ class Data_processing:
             input_columns = train_df.columns.drop(target_column)
 
             duration_pipeline = Pipeline([
-                ('duration', FunctionTransformer(lambda X: np.abs((pd.to_datetime(X['endDate'], format='%d-%m-%Y') - pd.to_datetime(X['startDate'], format='%d-%m-%Y')).dt.days), validate=False))
-                ])
+                ('duration', FunctionTransformer(get_duration, validate=False))
+            ])  
 
             platform_pipeline = Pipeline([
-                ('platform_Ethereum', FunctionTransformer(lambda X: X.isin(['ETH', 'Ethererum', 'Ethereum', 'Ethereum, Waves', 'Etherum']).astype(int), validate=False))
-                ])
+                ('platform_Ethereum', FunctionTransformer(get_platform, validate=False))
+            ])
 
-            brand_slogan_pipeline = Pipeline([
-                ('brandSlogan_score', FunctionTransformer(lambda X: X.apply(lambda x: TextBlob(str(x)).sentiment.polarity), validate=False))
-                ])
+
+            # brand_slogan_pipeline = Pipeline([
+            #     ('brandSlogan_score', FunctionTransformer(lambda X: X.apply(lambda x: TextBlob(str(x)).sentiment.polarity).values.reshape(-1, 1), validate=False))
+            # ])
 
             # country_region_pipeline = Pipeline([
             #     ('replace', FunctionTransformer(lambda X: X.applymap(get_continent))),
@@ -74,7 +82,7 @@ class Data_processing:
             # ])
 
 
-            numerical_vars = train_df[input_columns].select_dtypes(include=['float64', 'int64']).columns.tolist()
+            numerical_vars = ['ID', 'hasVideo', 'rating', 'priceUSD', 'teamSize', 'hasGithub','hasReddit', 'coinNum', 'minInvestment', 'distributedPercentage']
 
             numerical_pipeline = Pipeline([
                 ('imputer', SimpleImputer(strategy='median')),
@@ -86,7 +94,7 @@ class Data_processing:
                 ('duration', duration_pipeline, ['startDate', 'endDate']),
                 # ('country_region', country_region_pipeline, ['countryRegion']),
                 ('platform', platform_pipeline, ['platform']),
-                ('brand_slogan', brand_slogan_pipeline, ['brandSlogan'])
+                # ('brand_slogan', brand_slogan_pipeline, ['brandSlogan'])
             ]
 
             preprocessor = ColumnTransformer(preprocessor_transformers, remainder='drop')

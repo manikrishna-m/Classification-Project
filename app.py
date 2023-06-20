@@ -28,6 +28,7 @@ def predict_results():
             request.form.get('distributedPercentage'),
         )
         pred_df = data.data_dict()
+        print(pred_df)
         prediction = Predict_pipeline()
         prediction_result = prediction.predict(pred_df)
 
