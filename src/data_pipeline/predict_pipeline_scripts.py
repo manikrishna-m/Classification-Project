@@ -26,10 +26,6 @@ class Predict_pipeline:
 
             with open(self.model_path, "rb") as file_obj:
                 model = pickle.load(file_obj)
-            
-            print(processor.columns_)
-
-            print(processor.transform(data))
 
             return model.predict(processor.transform(data))
         
