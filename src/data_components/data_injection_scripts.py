@@ -1,19 +1,17 @@
-from src.logger import logging
-from src.exception import CustomException
-
 import os
 import sys
-from pathlib import Path
-original_path = sys.path.copy()
-sys.path.append(str(Path(__file__).parent.parent))
-
-from data_components.model_evaluation_scripts import ModelTrainer
-from data_components.data_preprocessing_scripts import Data_processing
-
 import pandas as pd
 import numpy as np
 
 from dataclasses import dataclass
+from pathlib import Path
+
+original_path = sys.path.copy()
+sys.path.append(str(Path(__file__).parent.parent.parent))
+from src.logger import logging
+from src.exception import CustomException
+from src.data_components.model_evaluation_scripts import ModelTrainer
+from src.data_components.data_preprocessing_scripts import Data_processing
 
 sys.path = original_path
 

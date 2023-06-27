@@ -1,6 +1,7 @@
 import os
 import sys
 import pickle
+import joblib
 from dataclasses import dataclass
 from pathlib import Path
 from sklearn.metrics import accuracy_score
@@ -18,9 +19,11 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 original_path = sys.path.copy()
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
 from src.exception import CustomException
 from src.logger import logging
+
 sys.path = original_path
 
 
@@ -111,7 +114,7 @@ class ModelTrainer:
             dir_path = os.path.dirname(self.model_path)
             os.makedirs(dir_path, exist_ok=True)
             with open(self.model_path, "wb") as file_obj:
-                pickle.dump(best_model, file_obj)
+                joblib.dump(best_model, file_obj)
 
             predicted = best_model.predict(X_test)
             accuracy = accuracy_score(y_test, predicted)

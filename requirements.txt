@@ -5,4 +5,8 @@ matplotlib
 seaborn
 plotly
 textblob
+catboost
+flask
+xgboost
+pycountry_convert
 category_encoders

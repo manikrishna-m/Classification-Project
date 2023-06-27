@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import os 
 import pickle
+import joblib
 
 from pathlib import Path
 original_path = sys.path.copy()
@@ -22,22 +23,22 @@ class Predict_pipeline:
     def predict(self,data):
         try:
             with open(self.processor_path, "rb") as file_obj:
-                processor = pickle.load(file_obj)
+                processor = joblib.load(file_obj)
 
             with open(self.model_path, "rb") as file_obj:
-                model = pickle.load(file_obj)
+                model = joblib.load(file_obj)
 
             return model.predict(processor.transform(data))
         
         except Exception as e:
-            raise CustomException(e, sys)
+            raise CustomException(e, sys.exc_info())
 
 
 class CustomData:
     def __init__(self, brandSlogan,hasVideo,rating,priceUSD,countryRegion,startDate,endDate,teamSize,
                  hasGithub,hasReddit,platform,coinNum,minInvestment,distributedPercentage):
         self.brandSlogan = brandSlogan
-        self.hasVedio = int(hasVideo)
+        self.hasVideo = int(hasVideo)
         self.rating = int(rating)
         self.priceUSD = int(priceUSD)
         self.countryRegion = countryRegion
@@ -54,27 +55,28 @@ class CustomData:
     def data_dict(self):
         try:
             predict_df = {
-                'ID': 1,
-                'brandSlogan': self.brandSlogan,
-                'hasVideo': self.hasVedio,
-                'rating': self.rating,
-                'priceUSD': self.priceUSD,
-                'countryRegion': self.countryRegion,
-                'startDate': self.startDate,
-                'endDate': self.endDate,
-                'teamSize': self.teamSize,
-                'hasGithub': self.hasGithub,
-                'hasReddit': self.hasReddit,
-                'platform': self.platform,
-                'coinNum': self.coinNum,
-                'minInvestment': self.minInvestment,
-                'distributedPercentage': self.distributedPercentage
+                'ID': [1],  # Wrap the values in a list to create a DataFrame
+                'brandSlogan': [self.brandSlogan],
+                'hasVideo': [self.hasVideo],  # Fix the typo in 'hasVideo'
+                'rating': [self.rating],
+                'priceUSD': [self.priceUSD],
+                'teamSize': [self.teamSize],
+                'hasGithub': [self.hasGithub],
+                'hasReddit': [self.hasReddit],
+                'coinNum': [self.coinNum],
+                'minInvestment': [self.minInvestment],
+                'distributedPercentage': [self.distributedPercentage],
+                'startDate': [self.startDate],
+                'endDate': [self.endDate],
+                'countryRegion': [self.countryRegion],
+                'platform': [self.platform]
             }
 
-            return pd.DataFrame.from_dict(predict_df, orient='index')
-        
+            return pd.DataFrame.from_dict(predict_df, orient='columns')  # Use 'columns' orientation
+
         except Exception as e:
-            raise CustomException(str(e),sys)
+            raise CustomException(e, sys.exc_info())
+
 
 
 

@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from textblob import TextBlob
 from dataclasses import dataclass
 from pycountry_convert import country_alpha2_to_continent_code
+import joblib
 
 import os
 import sys
@@ -17,19 +18,19 @@ import pycountry
 
 from pathlib import Path
 original_path = sys.path.copy()
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
 from src.logger import logging
 from src.exception import CustomException
-# from src.utils import save_object
 sys.path = original_path
 
-# def get_continent(country_code):
-#     try:
-#         country = pycountry.countries.get(alpha_2=country_code)
-#         if country:
-#             return country.continent.alpha_2
-#     except Exception as e:
-#             raise CustomException(e, sys.exc_info())
+def get_continent(country_code):
+    try:
+        country = pycountry.countries.get(alpha_2=country_code)
+        if country:
+            return country.continent.alpha_2
+    except Exception as e:
+            raise CustomException(e, sys.exc_info())
 
 def get_duration(X):
     return np.abs((pd.to_datetime(X['endDate'], format='%d-%m-%Y') - pd.to_datetime(X['startDate'], format='%d-%m-%Y')).dt.days).values.reshape(-1, 1)
@@ -143,7 +144,7 @@ class Data_processing:
             dir_path = os.path.dirname(self.preprocessing_path)
             os.makedirs(dir_path, exist_ok=True)
             with open(self.preprocessing_path, "wb") as file_obj:
-                pickle.dump(preprocessing_obj, file_obj)
+                joblib.dump(preprocessing_obj, file_obj)
         
             logging.info("Saved preprocessing object.")
 
