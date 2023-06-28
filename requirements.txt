@@ -7,6 +7,8 @@ plotly
 textblob
 catboost
 flask
+joblib
 xgboost
 pycountry_convert
 category_encoders
+sys
