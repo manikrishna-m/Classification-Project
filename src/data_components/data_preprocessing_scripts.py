@@ -60,7 +60,6 @@ class Data_processing:
             train_df = pd.read_csv(self.train_path)
 
             target_column = "success"
-            input_columns = train_df.columns.drop(target_column)
 
             duration_pipeline = Pipeline([
                 ('duration', FunctionTransformer(get_duration, validate=False))
@@ -103,13 +102,14 @@ class Data_processing:
             return preprocessor
 
         except Exception as e:
-            raise CustomException(e, sys.exc_info())
+            logging.exception("Data Injection Exception: {}".format(e))
+            raise CustomException(e, sys)
     
     def data_preprocessing(self):
         try:
             df = pd.read_csv(self.df_path)
 
-            logging.info("Reading data is completed")
+            logging.info("Reading data from saved folder is completed")
 
             train_df, test_df = train_test_split(df, test_size=0.2, random_state= 42)
 
@@ -141,15 +141,15 @@ class Data_processing:
             input_feature_train_arr = preprocessing_obj.fit_transform(input_feature_train_df)
             input_feature_test_arr = preprocessing_obj.transform(input_feature_test_df)
             
+            logging.info("Saving preprocessing object.")
+
             dir_path = os.path.dirname(self.preprocessing_path)
             os.makedirs(dir_path, exist_ok=True)
             with open(self.preprocessing_path, "wb") as file_obj:
                 joblib.dump(preprocessing_obj, file_obj)
-        
-            logging.info("Saved preprocessing object.")
 
             return input_feature_train_arr, target_feature_train_df, input_feature_test_arr, target_feature_test_df, self.preprocessing_path
 
         except CustomException as e:
-            new_exception = CustomException(e.error_message, sys)
-            raise new_exception
+            logging.exception("Data Injection Exception: {}".format(e))
+            raise CustomException(e, sys)

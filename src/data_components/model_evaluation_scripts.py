@@ -7,7 +7,6 @@ from pathlib import Path
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
 
-from catboost import CatBoostClassifier
 from sklearn.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
@@ -16,6 +15,8 @@ from sklearn.ensemble import (
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
 original_path = sys.path.copy()
@@ -44,23 +45,47 @@ class ModelTrainer:
                 train_input_array, train_target_array, test_input_array, test_target_array
             )
             models = {
-                "Random Forest": RandomForestClassifier(),
-                "Decision Tree": DecisionTreeClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
+                "Naive Bayes": GaussianNB(),
+                "SVM": SVC(),
+                "KNN": KNeighborsClassifier(),
                 "Logistic Regression": LogisticRegression(),
-                "XGBClassifier": XGBClassifier(),
-                "CatBoosting Classifier": CatBoostClassifier(verbose=False),
+                "Decision Tree": DecisionTreeClassifier(),
+                "Random Forest": RandomForestClassifier(),
                 "AdaBoost Classifier": AdaBoostClassifier(),
+                "XGBClassifier": XGBClassifier(),
+                "Gradient Boosting": GradientBoostingClassifier(),
             }
             params = {
+                "Naive Bayes": {},
+                "SVM": {
+                    "C": [0.1, 1, 10],
+                    "kernel": ["linear", "rbf"],
+                },
+                "KNN": {
+                    "n_neighbors": [3, 5, 7],
+                    "weights": ["uniform", "distance"],
+                    "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
+                },
+                "Logistic Regression": {
+                    "penalty": ["l2"],
+                    "C": [0.001, 0.01, 0.1, 1, 10, 100],
+                },
+                "Random Forest": {
+                    "criterion": ["gini", "entropy"],
+                    "max_features": ["sqrt", "log2", None],
+                    "n_estimators": [8, 16, 32, 64, 128, 256],
+                },
                 "Decision Tree": {
                     "criterion": ["gini", "entropy"],
                     "splitter": ["best", "random"],
                     "max_features": ["sqrt", "log2"],
                 },
-                "Random Forest": {
-                    "criterion": ["gini", "entropy"],
-                    "max_features": ["sqrt", "log2", None],
+                "AdaBoost Classifier": {
+                    "learning_rate": [0.1, 0.01, 0.5, 0.001],
+                    "n_estimators": [8, 16, 32, 64, 128, 256],
+                },
+                "XGBClassifier": {
+                    "learning_rate": [0.1, 0.01, 0.05, 0.001],
                     "n_estimators": [8, 16, 32, 64, 128, 256],
                 },
                 "Gradient Boosting": {
@@ -68,23 +93,6 @@ class ModelTrainer:
                     "learning_rate": [0.1, 0.01, 0.05, 0.001],
                     "subsample": [0.6, 0.7, 0.75, 0.8, 0.85, 0.9],
                     "max_features": ["auto", "sqrt", "log2"],
-                    "n_estimators": [8, 16, 32, 64, 128, 256],
-                },
-                "Logistic Regression": {
-                    "penalty": ["l2"],
-                    "C": [0.001, 0.01, 0.1, 1, 10, 100],
-                },
-                "XGBClassifier": {
-                    "learning_rate": [0.1, 0.01, 0.05, 0.001],
-                    "n_estimators": [8, 16, 32, 64, 128, 256],
-                },
-                "CatBoosting Classifier": {
-                    "depth": [6, 8, 10],
-                    "learning_rate": [0.01, 0.05, 0.1],
-                    "iterations": [30, 50, 100],
-                },
-                "AdaBoost Classifier": {
-                    "learning_rate": [0.1, 0.01, 0.5, 0.001],
                     "n_estimators": [8, 16, 32, 64, 128, 256],
                 },
             }
@@ -98,31 +106,35 @@ class ModelTrainer:
                 param=params,
             )
 
-            # To get best model score from dict
+            logging.info("Model building is started with hyperparameters")
             best_model_score = max(sorted(model_report.values()))
 
-            # To get best model name from dict
+            logging.info("Best model is found")
             best_model_name = list(model_report.keys())[
                 list(model_report.values()).index(best_model_score)
             ]
             best_model = models[best_model_name]
 
+            logging.info("Checking the best model score")
             if best_model_score < 0.6:
-                raise CustomException("No best model found")
+                logging.exception("Data Injection Exception: {}".format("No best model found"))
+                raise CustomException("No best model found", sys)
             logging.info(f"Best found model on both training and testing dataset")
 
+            logging.info("Saving model object.")
             dir_path = os.path.dirname(self.model_path)
             os.makedirs(dir_path, exist_ok=True)
             with open(self.model_path, "wb") as file_obj:
                 joblib.dump(best_model, file_obj)
 
+            logging.info("Checking the best model accuracy")
             predicted = best_model.predict(X_test)
             accuracy = accuracy_score(y_test, predicted)
             return accuracy
 
         except Exception as e:
-            raise CustomException(str(e), sys)
-
+            logging.exception("Data Injection Exception: {}".format(e))
+            raise CustomException(e, sys)
 
 
 def evaluate_models(X_train, y_train, X_test, y_test, models, param):
@@ -146,5 +158,5 @@ def evaluate_models(X_train, y_train, X_test, y_test, models, param):
         return report
 
     except Exception as e:
-        raise CustomException(str(e), sys)
-
+        logging.exception("Data Injection Exception: {}".format(e))
+        raise CustomException(e, sys)

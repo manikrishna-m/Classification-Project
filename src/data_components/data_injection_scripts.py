@@ -28,11 +28,9 @@ class Data_injection:
         
     def load_data(self):
         try:
-            logging.info("Data Injection started")
+            logging.info("Reading input dataset file")
 
             input_data = pd.read_csv(self.input_path)
-
-            logging.info("Data Injection Completed")
 
             input_data.to_csv(self.train_test_path, index=False)
 
@@ -41,14 +39,4 @@ class Data_injection:
         except Exception as e:
             logging.exception("Data Injection Exception: {}".format(e))
             raise CustomException(e, sys)
-
-if __name__=="__main__":
-    obj=Data_injection()
-    obj.load_data()
-
-    data_transformation=Data_processing()
-    train_input_arr, train_target_arr, test_input_arr, test_target_arr, _ = data_transformation.data_preprocessing()
-
-    modeltrainer=ModelTrainer()
-    print(modeltrainer.initiate_model_trainer(train_input_arr, train_target_arr, test_input_arr, test_target_arr))
 
