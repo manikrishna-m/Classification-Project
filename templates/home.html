@@ -9,66 +9,78 @@
     <h2>Submit Form</h2>
     <form method="post" action="{{ url_for('predict_results') }}" class="needs-validation" novalidate>
       <div class="form-group">
-        <label for="name">Brand Slogan:</label>
+        <label for="brandSlogan">Brand Slogan:</label>
         <input type="text" class="form-control" id="brandSlogan" name="brandSlogan" required>
       </div>
       <div class="form-group">
-        <label for="name">Has Video</Video>:</label>
-        <input type="text" class="form-control" id="hasVideo" name="hasVideo" required>
+        <label for="hasVideo">Has Video:</label>
+        <select class="form-control" id="hasVideo" name="hasVideo" required>
+          <option value="">Select an option</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
       </div>
       <div class="form-group">
-        <label for="name">Rating:</label>
-        <input type="text" class="form-control" id="rating" name="rating" required>
+        <label for="rating">Rating:</label>
+        <input type="number" class="form-control" id="rating" name="rating" step="0.1" min="0" max="5" required>
       </div>
       <div class="form-group">
-        <label for="name">Price USD:</label>
+        <label for="priceUSD">Price USD:</label>
         <input type="text" class="form-control" id="priceUSD" name="priceUSD" required>
       </div>
       <div class="form-group">
-        <label for="name">Country Region:</label>
+        <label for="countryRegion">Country Region:</label>
         <input type="text" class="form-control" id="countryRegion" name="countryRegion" required>
       </div>
       <div class="form-group">
-        <label for="name">Start Date:</label>
+        <label for="startDate">Start Date:</label>
         <input type="text" class="form-control" id="startDate" name="startDate" required>
       </div>
       <div class="form-group">
-        <label for="name">End Date:</label>
+        <label for="endDate">End Date:</label>
         <input type="text" class="form-control" id="endDate" name="endDate" required>
       </div>
       <div class="form-group">
-        <label for="name">Team Size:</label>
+        <label for="teamSize">Team Size:</label>
         <input type="text" class="form-control" id="teamSize" name="teamSize" required>
       </div>
       <div class="form-group">
-        <label for="name">Has Github:</label>
-        <input type="text" class="form-control" id="hasGithub" name="hasGithub" required>
+        <label for="hasGithub">Has Github:</label>
+        <select class="form-control" id="hasGithub" name="hasGithub" required>
+          <option value="">Select an option</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
       </div>
       <div class="form-group">
-        <label for="name">Has Reddit:</label>
-        <input type="text" class="form-control" id="hasReddit" name="hasReddit" required>
+        <label for="hasReddit">Has Reddit:</label>
+        <select class="form-control" id="hasReddit" name="hasReddit" required>
+          <option value="">Select an option</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
       </div>
       <div class="form-group">
-        <label for="email">Platform:</label>
+        <label for="platform">Platform:</label>
         <input type="email" class="form-control" id="platform" name="platform" required>
       </div>
       <div class="form-group">
-        <label for="phone">Coin Num:</label>
+        <label for="coinNum">Coin Num:</label>
         <input type="tel" class="form-control" id="coinNum" name="coinNum" required>
       </div>
       <div class="form-group">
-        <label for="phone">Minimum Investment:</label>
+        <label for="minInvestment">Minimum Investment:</label>
         <input type="tel" class="form-control" id="minInvestment" name="minInvestment" required>
       </div>
       <div class="form-group">
-        <label for="phone">Distributed Percentage:</label>
+        <label for="distributedPercentage">Distributed Percentage:</label>
         <input type="tel" class="form-control" id="distributedPercentage" name="distributedPercentage" required>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
     <h2>
-        The results is {{result}}
+        The result is {{ result }}
     </h2>
   </div> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
