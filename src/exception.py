@@ -1,3 +1,4 @@
+
 class CustomException(Exception):
     def __init__(self, error_message, sys_module):
         _, _, self.traceback = sys_module.exc_info()
